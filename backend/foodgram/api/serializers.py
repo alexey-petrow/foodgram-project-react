@@ -1,4 +1,4 @@
-# from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 # from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import (UniqueTogetherValidator,
@@ -33,7 +33,7 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurment_unit')
-        lookup_field = ('id')
+        # lookup_field = ('id')
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
@@ -59,7 +59,7 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
-        lookup_field = "id"
+        # lookup_field = 'id'
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -86,16 +86,16 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
-            "id",
-            "tags",
-            "author",
-            "ingredients",
-            "is_favorited",
-            "is_in_shopping_cart",
-            "name",
-            "image",
-            "text",
-            "cooking_time"
+            'id',
+            'tags',
+            'author',
+            'ingredients',
+            'is_favorited',
+            'is_in_shopping_cart',
+            'name',
+            'image',
+            'text',
+            'cooking_time'
         )
 
     def create(self, validated_data):
@@ -113,23 +113,29 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
+        instance.tags.clear()
         for tag in tags:
-            if tag not in instance.tags.all():
-                instance.tags.add(tag)
+            instance.tags.add(tag)
         ingredients = validated_data.pop('ingredients')
+        instance.ingredients.clear()
         for ingredient in ingredients:
-            if ingredient not in instance.ingredients.all():
-                ingredient_in_recipe, create = (
-                    IngredientInRecipe.objects.get_or_create(**ingredient)
-                )
-                instance.ingredients.add(ingredient_in_recipe)
+            ingredient_in_recipe, create = (
+                IngredientInRecipe.objects.get_or_create(**ingredient)
+            )
+            instance.ingredients.add(ingredient_in_recipe)
+        instance.name = validated_data.get('name', instance.name)
+        instance.image = validated_data.get('image', instance.image)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get(
+            'cooking_time', instance.cooking_time)
+        instance.save()
         return instance
 
     validators = [
             UniqueTogetherValidator(
                 queryset=Recipe.objects.all(),
-                fields=("name", "author"),
-                message="Вы уже создавали такой рецепт.",
+                fields=('name', 'author'),
+                message='Вы уже создавали такой рецепт.',
             )
         ]
 
@@ -143,3 +149,42 @@ class RecipePostSerializer(RecipeSerializer):
         queryset=Tag.objects.all(),
         many=True
     )
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    id = serializers.SerializerMethodField()
+    name = serializers.SerializerMethodField()
+    # image = serializers.SerializerMethodField()
+    cooking_time = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Favorite
+        # fields = ('id', 'name', 'image', 'cooking_time')
+        fields = ('id', 'name', 'cooking_time')
+
+    def get_id(self, obj):
+        return obj.recipe.id
+
+    def get_name(self, obj):
+        return obj.recipe.name
+
+    # def get_image(self, obj):
+    #     return obj.recipe.image
+
+    def get_cooking_time(self, obj):
+        return obj.recipe.cooking_time
+
+    def validate(self, data):
+        recipe = get_object_or_404(
+            Recipe,
+            id=self.context.get('view').kwargs.get('recipe_id')
+        )
+        user = self.context['request'].user
+        request_method = self.context['request'].method
+        follow_exists = Favorite.objects.filter(
+            user=user, recipe=recipe).exists()
+        if request_method == 'POST' and follow_exists:
+            raise serializers.ValidationError(
+                f'Рецепт {recipe.name} уже в избранном!'
+            )
+        return data

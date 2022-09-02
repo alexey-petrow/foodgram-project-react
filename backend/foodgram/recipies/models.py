@@ -102,6 +102,9 @@ class Favorite(models.Model):
         related_name='favorits'
     )
 
+    def __str__(self):
+        return f'Рецепт {self.recipe.name} в избранном у {self.user.username}.'
+
 
 class Subscription(models.Model):
     who_subscribes = models.ForeignKey(
