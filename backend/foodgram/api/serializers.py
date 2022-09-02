@@ -1,8 +1,8 @@
 # from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 # from rest_framework.relations import SlugRelatedField
-# from rest_framework.validators import (UniqueTogetherValidator,
-#                                        UniqueValidator)
+from rest_framework.validators import (UniqueTogetherValidator,
+                                       UniqueValidator)
 from djoser.serializers import UserSerializer
 from recipies.models import (Recipe, Ingredient, IngredientInRecipe, Tag,
                              User, Favorite, Subscription, Shoping_cart)
@@ -13,8 +13,8 @@ class CustomUserSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         return Subscription.objects.filter(
-            who_subscribes=self.context['request'].user,
-            subscribes_to=obj
+            who_subscribes=self.context['request'].user.id,
+            subscribes_to=obj.id
         ).exists()
 
     class Meta:
@@ -73,13 +73,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         return Favorite.objects.filter(
-            user=self.context['request'].user,
+            user=self.context['request'].user.id,
             recipe=obj.id
         ).exists()
 
     def get_is_in_shopping_cart(self, obj):
         return Shoping_cart.objects.filter(
-            user=self.context['request'].user,
+            user=self.context['request'].user.id,
             recipe=obj.id
         ).exists()
 
@@ -110,6 +110,28 @@ class RecipeSerializer(serializers.ModelSerializer):
         for tag in tags:
             new_recipe.tags.add(tag)
         return new_recipe
+
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags')
+        for tag in tags:
+            if tag not in instance.tags.all():
+                instance.tags.add(tag)
+        ingredients = validated_data.pop('ingredients')
+        for ingredient in ingredients:
+            if ingredient not in instance.ingredients.all():
+                ingredient_in_recipe, create = (
+                    IngredientInRecipe.objects.get_or_create(**ingredient)
+                )
+                instance.ingredients.add(ingredient_in_recipe)
+        return instance
+
+    validators = [
+            UniqueTogetherValidator(
+                queryset=Recipe.objects.all(),
+                fields=("name", "author"),
+                message="Вы уже создавали такой рецепт.",
+            )
+        ]
 
 
 class RecipeGetSerializer(RecipeSerializer):

@@ -3,19 +3,11 @@ from rest_framework import viewsets, permissions, filters
 # from django.shortcuts import get_object_or_404
 
 from recipies.models import (Recipe, Ingredient, Tag, User,
-                             IngredientInRecipe,
                              Favorite, Subscription, Shoping_cart)
-# from .permissions import AuthorOrReadOnly
+from .permissions import IsAdminAuthorOrReadOnly
 # from .mixins import ListCreateViewSet
 from .serializers import (TagSerializer, IngredientSerializer,
-                          IngredientInRecipeSerializer,
-                          RecipeGetSerializer, RecipePostSerializer,
-                          CustomUserSerializer)
-
-
-class UserViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = CustomUserSerializer
+                          RecipeGetSerializer, RecipePostSerializer,)
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -28,13 +20,9 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
 
 
-class IngredientInRecipeViewSet(viewsets.ModelViewSet):
-    queryset = IngredientInRecipe.objects.all()
-    serializer_class = IngredientInRecipeSerializer
-
-
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
+    permission_classes = (IsAdminAuthorOrReadOnly,)
 
     def get_serializer_class(self):
         if self.request.method == "GET":
