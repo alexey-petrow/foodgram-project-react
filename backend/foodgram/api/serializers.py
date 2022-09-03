@@ -173,18 +173,3 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     def get_cooking_time(self, obj):
         return obj.recipe.cooking_time
-
-    def validate(self, data):
-        recipe = get_object_or_404(
-            Recipe,
-            id=self.context.get('view').kwargs.get('recipe_id')
-        )
-        user = self.context['request'].user
-        request_method = self.context['request'].method
-        follow_exists = Favorite.objects.filter(
-            user=user, recipe=recipe).exists()
-        if request_method == 'POST' and follow_exists:
-            raise serializers.ValidationError(
-                f'Рецепт {recipe.name} уже в избранном!'
-            )
-        return data

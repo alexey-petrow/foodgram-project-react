@@ -36,21 +36,30 @@ class RecipeViewSet(viewsets.ModelViewSet):
         author = self.request.user
         serializer.save(author=author)
 
-
-class FavoriteViewSet(CreateDestroyViewSet):
-    queryset = Favorite.objects.all()
-    serializer_class = FavoriteSerializer
-    permission_classes = (permissions.IsAuthenticated,)
-
-    def perform_create(self, serializer):
-        user = self.request.user
-        recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
-        serializer.save(user=user, recipe=recipe)
-
-    # @action(methods=['delete'], detail=False)
-    # def delete_from_favorits(self, request, pk=None):
-    #     user = request.user
-    #     recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
-    #     instance = Favorite.objects.filter(user=user, recipe=recipe)
-    #     instance.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        url_path='favorite')
+    def favorite(self, request, pk=None):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        is_in_favorite = Favorite.objects.filter(
+            user=user, recipe=recipe).exists()
+        if request.method == 'POST':
+            if is_in_favorite:
+                return Response(
+                    {'error': f'Рецепт {recipe.name} уже в избранном.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            favorite = Favorite.objects.create(user=user, recipe=recipe)
+            serializer = FavoriteSerializer(favorite)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        elif request.method == 'DELETE':
+            if not is_in_favorite:
+                return Response(
+                    {'error': f'Рецепта {recipe.name} нет в избранном'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            instance = get_object_or_404(Favorite, user=user, recipe=recipe)
+            instance.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
