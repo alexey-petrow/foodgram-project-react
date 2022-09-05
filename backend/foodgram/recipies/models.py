@@ -11,7 +11,7 @@ class Ingredient(models.Model):
         max_length=200,
         unique=True
     )
-    measurment_unit = models.CharField(
+    measurement_unit = models.CharField(
         'Единица измерения',
         max_length=200
     )
@@ -121,14 +121,14 @@ class Subscription(models.Model):
     )
 
 
-class Shoping_cart(models.Model):
+class Shopping_cart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='shoping'
+        related_name='shopping'
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='shoping'
+        related_name='shopping'
     )

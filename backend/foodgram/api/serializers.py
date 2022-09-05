@@ -5,7 +5,7 @@ from rest_framework.validators import (UniqueTogetherValidator,
                                        UniqueValidator)
 from djoser.serializers import UserSerializer
 from recipies.models import (Recipe, Ingredient, IngredientInRecipe, Tag,
-                             User, Favorite, Subscription, Shoping_cart)
+                             User, Favorite, Subscription, Shopping_cart)
 
 
 class CustomUserSerializer(UserSerializer):
@@ -32,7 +32,7 @@ class CustomUserSerializer(UserSerializer):
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
-        fields = ('id', 'name', 'measurment_unit')
+        fields = ('id', 'name', 'measurement_unit')
         # lookup_field = ('id')
 
 
@@ -42,17 +42,17 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         source='ingredient'
     )
     name = serializers.SerializerMethodField()
-    measurment_unit = serializers.SerializerMethodField()
+    measurement_unit = serializers.SerializerMethodField()
 
     class Meta:
         model = IngredientInRecipe
-        fields = ('id', 'name', 'measurment_unit', 'amount')
+        fields = ('id', 'name', 'measurement_unit', 'amount')
 
     def get_name(self, obj):
         return obj.ingredient.name
 
-    def get_measurment_unit(self, obj):
-        return obj.ingredient.measurment_unit
+    def get_measurement_unit(self, obj):
+        return obj.ingredient.measurement_unit
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -78,7 +78,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        return Shoping_cart.objects.filter(
+        return Shopping_cart.objects.filter(
             user=self.context['request'].user.id,
             recipe=obj.id
         ).exists()
@@ -151,7 +151,7 @@ class RecipePostSerializer(RecipeSerializer):
     )
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
+class FavoriteAndShoppingCartSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
     name = serializers.SerializerMethodField()
     # image = serializers.SerializerMethodField()
