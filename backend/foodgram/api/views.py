@@ -1,11 +1,12 @@
 from rest_framework import viewsets, permissions, filters, status
 # from rest_framework.pagination import LimitOffsetPagination
-from django.shortcuts import get_object_or_404
+# from django.shortcuts import get_object_or_404
 from rest_framework.decorators import action
-from rest_framework.response import Response
+# from rest_framework.response import Response
 
-from recipies.models import (Recipe, Ingredient, Tag, User,
-                             Favorite, Subscription, Shopping_cart)
+from recipies.models import (Recipe, Ingredient, Tag,
+                             Favorite, ShoppingCart)
+from users.models import User, Subscription
 from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (TagSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
@@ -54,6 +55,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk=None):
         return create_and_delete_relation(
             request, pk,
-            Shopping_cart,
+            ShoppingCart,
             FavoriteAndShoppingCartSerializer,
             part_of_error_message='списке покупок')

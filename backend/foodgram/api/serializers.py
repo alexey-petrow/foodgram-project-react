@@ -1,32 +1,12 @@
-from django.shortcuts import get_object_or_404
+# from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 # from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import (UniqueTogetherValidator,
                                        UniqueValidator)
-from djoser.serializers import UserSerializer
+from users.models import User, Subscription
 from recipies.models import (Recipe, Ingredient, IngredientInRecipe, Tag,
-                             User, Favorite, Subscription, Shopping_cart)
-
-
-class CustomUserSerializer(UserSerializer):
-    is_subscribed = serializers.SerializerMethodField()
-
-    def get_is_subscribed(self, obj):
-        return Subscription.objects.filter(
-            who_subscribes=self.context['request'].user.id,
-            subscribes_to=obj.id
-        ).exists()
-
-    class Meta:
-        model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-            'is_subscribed',
-        )
+                             Favorite, ShoppingCart)
+from users.serializers import CustomUserSerializer
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -78,7 +58,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ).exists()
 
     def get_is_in_shopping_cart(self, obj):
-        return Shopping_cart.objects.filter(
+        return ShoppingCart.objects.filter(
             user=self.context['request'].user.id,
             recipe=obj.id
         ).exists()

@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
 from django.db import models
 from django.core.validators import MinValueValidator
 
-User = get_user_model()
+from users.models import User
 
 
 class Ingredient(models.Model):
@@ -106,22 +105,7 @@ class Favorite(models.Model):
         return f'Рецепт {self.recipe.name} в избранном у {self.user.username}.'
 
 
-class Subscription(models.Model):
-    who_subscribes = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='subscribes',
-        verbose_name='Тот кто подписывается'
-    )
-    subscribes_to = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='subscribers',
-        verbose_name='Тот на кого подписываются'
-    )
-
-
-class Shopping_cart(models.Model):
+class ShoppingCart(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
