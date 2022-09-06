@@ -10,7 +10,7 @@ from users.models import User, Subscription
 from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (TagSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
-                          FavoriteAndShoppingCartSerializer)
+                          FavoriteSerializer, ShoppingCartSerializer)
 from .utils import create_and_delete_relation
 
 
@@ -45,7 +45,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return create_and_delete_relation(
             request, pk,
             Favorite,
-            FavoriteAndShoppingCartSerializer,
+            FavoriteSerializer,
             part_of_error_message='избранном')
 
     @action(
@@ -56,5 +56,5 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return create_and_delete_relation(
             request, pk,
             ShoppingCart,
-            FavoriteAndShoppingCartSerializer,
+            ShoppingCartSerializer,
             part_of_error_message='списке покупок')

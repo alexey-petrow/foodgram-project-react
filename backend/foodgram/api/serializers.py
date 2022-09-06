@@ -1,5 +1,5 @@
 # from django.shortcuts import get_object_or_404
-from rest_framework import serializers
+from rest_framework import serializers, mixins, viewsets
 # from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import (UniqueTogetherValidator,
                                        UniqueValidator)
@@ -131,25 +131,20 @@ class RecipePostSerializer(RecipeSerializer):
     )
 
 
-class FavoriteAndShoppingCartSerializer(serializers.ModelSerializer):
-    id = serializers.SerializerMethodField()
-    name = serializers.SerializerMethodField()
-    # image = serializers.SerializerMethodField()
-    cooking_time = serializers.SerializerMethodField()
+class FavoriteSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField(source='recipe.id')
+    name = serializers.ReadOnlyField(source='recipe.name')
+    # image = serializers.ReadOnlyField(source='recipe.image')
+    cooking_time = serializers.ReadOnlyField(source='recipe.cooking_time')
 
     class Meta:
         model = Favorite
         # fields = ('id', 'name', 'image', 'cooking_time')
         fields = ('id', 'name', 'cooking_time')
 
-    def get_id(self, obj):
-        return obj.recipe.id
 
-    def get_name(self, obj):
-        return obj.recipe.name
-
-    # def get_image(self, obj):
-    #     return obj.recipe.image
-
-    def get_cooking_time(self, obj):
-        return obj.recipe.cooking_time
+class ShoppingCartSerializer(FavoriteSerializer):
+    class Meta:
+        model = ShoppingCart
+        # fields = ('id', 'name', 'image', 'cooking_time')
+        fields = ('id', 'name', 'cooking_time')
