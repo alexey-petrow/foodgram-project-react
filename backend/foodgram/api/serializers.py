@@ -1,9 +1,9 @@
 # from django.shortcuts import get_object_or_404
-from rest_framework import serializers, mixins, viewsets
+from rest_framework import serializers
 # from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import (UniqueTogetherValidator,
                                        UniqueValidator)
-from users.models import User, Subscription
+# from users.models import User, Subscription
 from recipies.models import (Recipe, Ingredient, IngredientInRecipe, Tag,
                              Favorite, ShoppingCart)
 from users.serializers import CustomUserSerializer
