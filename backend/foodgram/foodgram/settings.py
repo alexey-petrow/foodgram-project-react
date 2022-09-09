@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'recipies',
     'api',
     'users',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -86,6 +87,16 @@ WSGI_APPLICATION = 'foodgram.wsgi.application'
 #         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
 #         'HOST': os.getenv('DB_HOST'),
 #         'PORT': os.getenv('DB_PORT'),
+#     }
+# }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+#         'NAME': 'postgres',
+#         'USER': 'postgres',
+#         'PASSWORD': 'postgres',
+#         'HOST': 'db',
+#         'PORT': '5432',
 #     }
 # }
 DATABASES = {
@@ -137,7 +148,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
+STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+# STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
+
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
+
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -146,14 +162,19 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
+    "DEFAULT_PAGINATION_CLASS":
+        "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
 }
 
 DJOSER = {
     'SERIALIZERS': {
         'user': 'users.serializers.CustomUserSerializer',
         'current_user': 'users.serializers.CustomUserSerializer',
-        'user_create': 'djoser.serializers.UserCreateSerializer',
+        'user_create': 'users.serializers.CustomUserCreateSerializer',
     },
     'USER_CREATE_PASSWORD_RETYPE': False,
     'LOGIN_FIELD': 'email',
 }
+
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'

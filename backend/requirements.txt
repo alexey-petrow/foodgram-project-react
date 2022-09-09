@@ -4,4 +4,5 @@ pytz==2022.2.1
 sqlparse==0.4.2
 Pillow==9.2.0
 djoser==2.1.0
-fpdf=1.7.2
+fpdf==1.7.2
+django-filter==22.1

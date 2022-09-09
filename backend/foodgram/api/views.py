@@ -1,14 +1,13 @@
-from rest_framework import viewsets, permissions, filters, status
-# from rest_framework.pagination import LimitOffsetPagination
-# from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
 from django.http import HttpResponse
 from wsgiref.util import FileWrapper
 from rest_framework.decorators import action
-# from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
+
 
 from recipies.models import (Recipe, Ingredient, Tag,
                              Favorite, ShoppingCart)
-# from users.models import User, Subscription
+from recipies.filters import RecipeFilter
 from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (TagSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
@@ -19,16 +18,21 @@ from .utils import create_and_delete_relation, ingredients_dict_to_pdf
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None
+    filter_backends = ()
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (IsAdminAuthorOrReadOnly,)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.request.method == 'GET':
@@ -77,11 +81,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     (ingredient.ingredient.name,
                      ingredient.ingredient.measurement_unit,
                      ingredient.amount))
-        ing_set = set((item[0] + ' ' + item[1]) for item in ingredients_list)
+        ing_set = set(f'{item[0]} ({item[1]})' for item in ingredients_list)
         ing_list = list(ing_set)
         ing_dict = dict.fromkeys(sorted(ing_list), 0)
         for ingredient in ingredients_list:
-            ing_dict[(ingredient[0] + ' ' + ingredient[1])] += ingredient[2]
+            ing_dict[f'{ingredient[0]} ({ingredient[1]})'] += ingredient[2]
         ingredients_dict_to_pdf(ing_dict)
         pdf_file = open("api/shopping_list/shopping_list.pdf", 'rb')
         content_type = 'application/pdf'

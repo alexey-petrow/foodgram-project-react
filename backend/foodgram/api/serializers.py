@@ -1,9 +1,5 @@
-# from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-# from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import (UniqueTogetherValidator,
-                                       UniqueValidator)
-# from users.models import User, Subscription
+from rest_framework.validators import UniqueTogetherValidator
 from recipies.models import (Recipe, Ingredient, IngredientInRecipe, Tag,
                              Favorite, ShoppingCart)
 from users.serializers import CustomUserSerializer
@@ -13,7 +9,6 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
-        # lookup_field = ('id')
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
@@ -39,7 +34,6 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
-        # lookup_field = 'id'
 
 
 class RecipeSerializer(serializers.ModelSerializer):
