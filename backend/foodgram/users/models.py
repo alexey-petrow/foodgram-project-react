@@ -17,3 +17,10 @@ class Subscription(models.Model):
         related_name='subscribers',
         verbose_name='Тот на кого подписываются'
     )
+
+    class Meta:
+        ordering = ['id']
+
+    def __str__(self):
+        return (f'{self.who_subscribes.username}'
+                f' подписан на {self.subscribes_to.username}.')

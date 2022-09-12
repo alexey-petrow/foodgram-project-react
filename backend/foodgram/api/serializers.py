@@ -1,3 +1,6 @@
+from base64 import b64decode
+from uuid import uuid4
+from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from recipies.models import (Recipe, Ingredient, IngredientInRecipe, Tag,
@@ -72,6 +75,27 @@ class RecipeSerializer(serializers.ModelSerializer):
             'cooking_time'
         )
 
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Recipe.objects.all(),
+                fields=('name', 'author'),
+                message='Вы уже создавали такой рецепт.',
+            )
+        ]
+
+    # создать кастомное поле для конвертации и отображения
+    def to_internal_value(self, data):
+        if 'image' in data:
+            format, imgstr = data['image'].split(';base64,')
+            ext = format.split('/')[-1]
+            file_name = str(uuid4())
+            img_file = ContentFile(
+                b64decode(imgstr), name=f'{file_name}.{ext}'
+            )
+
+            data['image'] = img_file
+        return super().to_internal_value(data)
+
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
@@ -105,14 +129,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    validators = [
-            UniqueTogetherValidator(
-                queryset=Recipe.objects.all(),
-                fields=('name', 'author'),
-                message='Вы уже создавали такой рецепт.',
-            )
-        ]
-
 
 class RecipeGetSerializer(RecipeSerializer):
     tags = TagSerializer(many=True)
@@ -128,17 +144,20 @@ class RecipePostSerializer(RecipeSerializer):
 class FavoriteSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='recipe.id')
     name = serializers.ReadOnlyField(source='recipe.name')
-    # image = serializers.ReadOnlyField(source='recipe.image')
+    image = serializers.SerializerMethodField()
     cooking_time = serializers.ReadOnlyField(source='recipe.cooking_time')
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        image_url = obj.recipe.image.url
+        return request.build_absolute_uri(image_url)
 
     class Meta:
         model = Favorite
-        # fields = ('id', 'name', 'image', 'cooking_time')
-        fields = ('id', 'name', 'cooking_time')
+        fields = ('id', 'name', 'image', 'cooking_time')
 
 
 class ShoppingCartSerializer(FavoriteSerializer):
     class Meta:
         model = ShoppingCart
-        # fields = ('id', 'name', 'image', 'cooking_time')
-        fields = ('id', 'name', 'cooking_time')
+        fields = ('id', 'name', 'image', 'cooking_time')

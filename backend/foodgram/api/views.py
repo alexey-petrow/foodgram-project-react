@@ -7,7 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from recipies.models import (Recipe, Ingredient, Tag,
                              Favorite, ShoppingCart)
-from recipies.filters import RecipeFilter
+from recipies.filters import RecipeFilter, IngredientSearchFilter
 from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (TagSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
@@ -25,7 +25,8 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    filter_backends = ()
+    filter_backends = (IngredientSearchFilter,)
+    search_fields = ('^name',)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -87,6 +88,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         for ingredient in ingredients_list:
             ing_dict[f'{ingredient[0]} ({ingredient[1]})'] += ingredient[2]
         ingredients_dict_to_pdf(ing_dict)
-        pdf_file = open("api/shopping_list/shopping_list.pdf", 'rb')
+        pdf_file = open('api/shopping_list/shopping_list.pdf', 'rb')
         content_type = 'application/pdf'
         return HttpResponse(FileWrapper(pdf_file), content_type=content_type)

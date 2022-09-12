@@ -31,6 +31,9 @@ class IngredientInRecipe(models.Model):
         ]
     )
 
+    def __str__(self):
+        return f'{self.ingredient.name} - {self.amount}'
+
 
 class Tag(models.Model):
     name = models.CharField(
@@ -116,3 +119,7 @@ class ShoppingCart(models.Model):
         on_delete=models.CASCADE,
         related_name='shopping'
     )
+
+    def __str__(self):
+        return (f'Рецепт {self.recipe.name}'
+                f'в списке покупок у {self.user.username}.')
