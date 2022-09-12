@@ -1,8 +1,7 @@
 from django.contrib import admin
 
-from recipies.models import (Ingredient, Tag, Recipe,
-                             Favorite, ShoppingCart)
-from recipies.filters import NameFilter, UsernameFilter, TagnameFilter
+from recipies.filters import NameFilter, TagnameFilter, UsernameFilter
+from recipies.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 
 
 class IngredientAdmin(admin.ModelAdmin):

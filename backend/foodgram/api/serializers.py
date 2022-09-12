@@ -1,10 +1,12 @@
 from base64 import b64decode
 from uuid import uuid4
+
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from recipies.models import (Recipe, Ingredient, IngredientInRecipe, Tag,
-                             Favorite, ShoppingCart)
+
+from recipies.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
+                             ShoppingCart, Tag)
 from users.serializers import CustomUserSerializer
 
 
@@ -83,7 +85,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
         ]
 
-    # создать кастомное поле для конвертации и отображения
     def to_internal_value(self, data):
         if 'image' in data:
             format, imgstr = data['image'].split(';base64,')
@@ -121,13 +122,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 IngredientInRecipe.objects.get_or_create(**ingredient)
             )
             instance.ingredients.add(ingredient_in_recipe)
-        instance.name = validated_data.get('name', instance.name)
-        instance.image = validated_data.get('image', instance.image)
-        instance.text = validated_data.get('text', instance.text)
-        instance.cooking_time = validated_data.get(
-            'cooking_time', instance.cooking_time)
-        instance.save()
-        return instance
+        return super().update(instance, validated_data)
 
 
 class RecipeGetSerializer(RecipeSerializer):
