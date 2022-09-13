@@ -62,7 +62,10 @@ class SubscribeSerializer(serializers.ModelSerializer):
     recipes_count = serializers.SerializerMethodField()
 
     def get_is_subscribed(self, obj):
-        return True
+        return Subscription.objects.filter(
+            who_subscribes=self.context['request'].user.id,
+            subscribes_to=obj.subscribes_to.id
+        ).exists()
 
     def get_recipes(self, obj):
         queryset = Recipe.objects.filter(

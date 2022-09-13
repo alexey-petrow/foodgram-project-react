@@ -20,6 +20,12 @@ class Subscription(models.Model):
 
     class Meta:
         ordering = ['id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['who_subscribes', 'subscribes_to'],
+                name='unique_who_subscribes_subscribes_to'
+            )
+        ]
 
     def __str__(self):
         return (f'{self.who_subscribes.username}'

@@ -31,6 +31,14 @@ class IngredientInRecipe(models.Model):
         ]
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['ingredient', 'amount'],
+                name='unique_ingredient_amount'
+            )
+        ]
+
     def __str__(self):
         return f'{self.ingredient.name} - {self.amount}'
 
@@ -104,6 +112,14 @@ class Favorite(models.Model):
         related_name='favorits'
     )
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite_user_recipe'
+            )
+        ]
+
     def __str__(self):
         return f'Рецепт {self.recipe.name} в избранном у {self.user.username}.'
 
@@ -119,6 +135,14 @@ class ShoppingCart(models.Model):
         on_delete=models.CASCADE,
         related_name='shopping'
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_shopping_cart_user_recipe'
+            )
+        ]
 
     def __str__(self):
         return (f'Рецепт {self.recipe.name}'

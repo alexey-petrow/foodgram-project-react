@@ -1,6 +1,7 @@
 from base64 import b64decode
 from uuid import uuid4
 
+from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -8,6 +9,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from recipies.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                              ShoppingCart, Tag)
 from users.serializers import CustomUserSerializer
+from .utils import add_tags_to_instance
 
 
 class IngredientSerializer(serializers.ModelSerializer):
@@ -21,18 +23,13 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
         queryset=Ingredient.objects.all(),
         source='ingredient'
     )
-    name = serializers.SerializerMethodField()
-    measurement_unit = serializers.SerializerMethodField()
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit')
 
     class Meta:
         model = IngredientInRecipe
         fields = ('id', 'name', 'measurement_unit', 'amount')
-
-    def get_name(self, obj):
-        return obj.ingredient.name
-
-    def get_measurement_unit(self, obj):
-        return obj.ingredient.measurement_unit
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -101,20 +98,24 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         new_recipe = Recipe.objects.create(**validated_data)
+        ingredients_objects_list = ([IngredientInRecipe(
+            ingredient=ingredient.get('ingredient'),
+            amount=ingredient.get('amount')) for ingredient in ingredients])
+        IngredientInRecipe.objects.bulk_create(
+            ingredients_objects_list,
+            ignore_conflicts=True
+        )
         for ingredient in ingredients:
-            ingredient_in_recipe, create = (
-                IngredientInRecipe.objects.get_or_create(**ingredient)
-            )
+            ingredient_in_recipe = get_object_or_404(
+                IngredientInRecipe, **ingredient)
             new_recipe.ingredients.add(ingredient_in_recipe)
-        for tag in tags:
-            new_recipe.tags.add(tag)
+        add_tags_to_instance(new_recipe, tags)
         return new_recipe
 
     def update(self, instance, validated_data):
         tags = validated_data.pop('tags')
         instance.tags.clear()
-        for tag in tags:
-            instance.tags.add(tag)
+        add_tags_to_instance(instance, tags)
         ingredients = validated_data.pop('ingredients')
         instance.ingredients.clear()
         for ingredient in ingredients:

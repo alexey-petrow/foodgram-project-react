@@ -44,4 +44,9 @@ def ingredients_dict_to_pdf(ing_dict):
     pdf.cell(200, 20, txt='Список ингредиентов:', ln=1, align='C')
     for key, value in ing_dict.items():
         pdf.cell(200, 10, txt=f'{key} - {value}', ln=1, align='L')
-    return pdf.output('api/shopping_list/shopping_list.pdf')
+    return pdf.output('shopping_list.pdf', 'S').encode('latin-1')
+
+
+def add_tags_to_instance(instance, tags):
+    for tag in tags:
+        instance.tags.add(tag)
