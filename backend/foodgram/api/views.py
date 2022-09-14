@@ -72,11 +72,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='download_shopping_cart')
     def download_shopping_cart(self, request):
         ingredients_list = ShoppingCart.objects.filter(
-            user=request.user).values_list(
-                'recipe__ingredients__ingredient__name',
-                'recipe__ingredients__ingredient__measurement_unit'
-                ).annotate(total_amount=Sum(
-                    'recipe__ingredients__amount', distinct=True))
+            user=request.user
+        ).values_list(
+            'recipe__ingredients__ingredient__name',
+            'recipe__ingredients__ingredient__measurement_unit'
+        ).annotate(total_amount=Sum(
+            'recipe__ingredients__amount', distinct=True)
+        )
         Ing = namedtuple('Ing', ['name', 'measurement_unit', 'total_amount'])
         ingredients_namedtuples_list = []
         for ingredient in ingredients_list:
