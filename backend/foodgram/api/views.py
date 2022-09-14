@@ -1,4 +1,7 @@
+from collections import namedtuple
+
 from django.http import HttpResponse
+from django.db.models import Sum
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -9,7 +12,7 @@ from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
                           ShoppingCartSerializer, TagSerializer)
-from .utils import create_and_delete_relation, ingredients_dict_to_pdf
+from .utils import create_and_delete_relation, ingredients_list_to_pdf
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -68,22 +71,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
         detail=False,
         url_path='download_shopping_cart')
     def download_shopping_cart(self, request):
-        shopping_cart = ShoppingCart.objects.filter(
-            user=request.user)
-        recipes_list = [instance.recipe for instance in shopping_cart]
-        ingredients_list = []
-        for recipe in recipes_list:
-            ingredients = recipe.ingredients.all()
-            for ingredient in ingredients:
-                ingredients_list.append(
-                    (ingredient.ingredient.name,
-                     ingredient.ingredient.measurement_unit,
-                     ingredient.amount))
-        ing_set = set(f'{item[0]} ({item[1]})' for item in ingredients_list)
-        ing_list = list(ing_set)
-        ing_dict = dict.fromkeys(sorted(ing_list), 0)
+        ingredients_list = ShoppingCart.objects.filter(
+            user=request.user).values_list(
+                'recipe__ingredients__ingredient__name',
+                'recipe__ingredients__ingredient__measurement_unit'
+                ).annotate(total_amount=Sum(
+                    'recipe__ingredients__amount', distinct=True))
+        Ing = namedtuple('Ing', ['name', 'measurement_unit', 'total_amount'])
+        ingredients_namedtuples_list = []
         for ingredient in ingredients_list:
-            ing_dict[f'{ingredient[0]} ({ingredient[1]})'] += ingredient[2]
-        pdf_file = ingredients_dict_to_pdf(ing_dict)
+            ingredients_namedtuples_list.append(
+                Ing(name=ingredient[0],
+                    measurement_unit=ingredient[1],
+                    total_amount=ingredient[2])
+            )
+        pdf_file = ingredients_list_to_pdf(ingredients_namedtuples_list)
         content_type = 'application/pdf'
         return HttpResponse(pdf_file, content_type=content_type)

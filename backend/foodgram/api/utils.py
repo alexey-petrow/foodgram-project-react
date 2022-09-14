@@ -36,14 +36,17 @@ def create_and_delete_relation(request, pk, model,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-def ingredients_dict_to_pdf(ing_dict):
+def ingredients_list_to_pdf(ingredients_list):
     pdf = FPDF()
     pdf.add_page()
     pdf.add_font('DejaVu', fname='api/fonts/DejaVuSans.ttf', uni=True)
     pdf.set_font('DejaVu', size=20)
     pdf.cell(200, 20, txt='Список ингредиентов:', ln=1, align='C')
-    for key, value in ing_dict.items():
-        pdf.cell(200, 10, txt=f'{key} - {value}', ln=1, align='L')
+    for item in ingredients_list:
+        pdf.cell(200, 10,
+                 txt=(f'{item.name} ({item.measurement_unit})'
+                      f' - {item.total_amount}'),
+                 ln=1, align='L')
     return pdf.output('shopping_list.pdf', 'S').encode('latin-1')
 
 
