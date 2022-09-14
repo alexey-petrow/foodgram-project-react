@@ -3,12 +3,10 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
-# SECRET_KEY = '!@778&29(vi3i4yq!@d2)=c(icv!$x-m_7^%0zj3c4vhiyq(6b'
 
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-# CORS_ORIGIN_ALLOW_ALL = True
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -66,12 +64,6 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT'),
     }
 }
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {

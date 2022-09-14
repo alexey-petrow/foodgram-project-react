@@ -1,7 +1,6 @@
 from base64 import b64decode
 from uuid import uuid4
 
-from django.shortcuts import get_object_or_404
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -16,6 +15,14 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
+
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Ingredient.objects.all(),
+                fields=('name', 'measurement_unit'),
+                message='Вы уже создавали такой ингредиент.',
+            )
+        ]
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
@@ -36,6 +43,14 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
+
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Tag.objects.all(),
+                fields=('name', 'slug'),
+                message='Вы уже создавали такой тег.',
+            )
+        ]
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -105,10 +120,12 @@ class RecipeSerializer(serializers.ModelSerializer):
             ingredients_objects_list,
             ignore_conflicts=True
         )
-        for ingredient in ingredients:
-            ingredient_in_recipe = get_object_or_404(
-                IngredientInRecipe, **ingredient)
-            new_recipe.ingredients.add(ingredient_in_recipe)
+        ingredients_queryset = IngredientInRecipe.objects.filter(
+            ingredient__in=([item.ingredient
+                            for item in ingredients_objects_list]),
+            amount__in=[item.amount for item in ingredients_objects_list]
+        )
+        new_recipe.ingredients.set(ingredients_queryset)
         add_tags_to_instance(new_recipe, tags)
         return new_recipe
 
