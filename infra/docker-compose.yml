@@ -9,6 +9,7 @@ services:
 
   web:
     image: alexeypetrow/foodgram_web
+    # build: ../backend/
     restart: always
     volumes:
       - static_value:/app/static/

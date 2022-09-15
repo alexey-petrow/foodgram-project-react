@@ -1,6 +1,6 @@
 from django.shortcuts import get_object_or_404
 from fpdf import FPDF
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.response import Response
 
 from recipies.models import Recipe
@@ -53,3 +53,11 @@ def ingredients_list_to_pdf(ingredients_list):
 def add_tags_to_instance(instance, tags):
     for tag in tags:
         instance.tags.add(tag)
+
+
+def check_for_dublicates(items_list, error_message):
+    items_set = set()
+    for item in items_list:
+        if item in items_set:
+            raise serializers.ValidationError(f'{error_message}')
+        items_set.add(item)

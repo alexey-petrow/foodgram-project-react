@@ -8,21 +8,13 @@ from rest_framework.validators import UniqueTogetherValidator
 from recipies.models import (Favorite, Ingredient, IngredientInRecipe, Recipe,
                              ShoppingCart, Tag)
 from users.serializers import CustomUserSerializer
-from .utils import add_tags_to_instance
+from .utils import add_tags_to_instance, check_for_dublicates
 
 
 class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
-
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Ingredient.objects.all(),
-                fields=('name', 'measurement_unit'),
-                message='Вы уже создавали такой ингредиент.',
-            )
-        ]
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
@@ -43,14 +35,6 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
-
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Tag.objects.all(),
-                fields=('name', 'slug'),
-                message='Вы уже создавали такой тег.',
-            )
-        ]
 
 
 class RecipeSerializer(serializers.ModelSerializer):
@@ -96,6 +80,19 @@ class RecipeSerializer(serializers.ModelSerializer):
                 message='Вы уже создавали такой рецепт.',
             )
         ]
+
+    def validate(self, data):
+        ingredients = (
+            [ingredient['ingredient'].id for ingredient in data['ingredients']]
+        )
+        tags = data['tags']
+        check_for_dublicates(
+            items_list=ingredients,
+            error_message='Ингредиенты дублируются')
+        check_for_dublicates(
+            items_list=tags,
+            error_message='Тэги дублируются')
+        return data
 
     def to_internal_value(self, data):
         if 'image' in data:
