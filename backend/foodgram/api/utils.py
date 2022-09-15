@@ -56,8 +56,6 @@ def add_tags_to_instance(instance, tags):
 
 
 def check_for_dublicates(items_list, error_message):
-    items_set = set()
-    for item in items_list:
-        if item in items_set:
-            raise serializers.ValidationError(f'{error_message}')
-        items_set.add(item)
+    items_set = set(items_list)
+    if len(items_list) > len(items_set):
+        raise serializers.ValidationError(f'{error_message}')
