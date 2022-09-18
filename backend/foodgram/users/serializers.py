@@ -69,7 +69,7 @@ class SubscribeSerializer(serializers.ModelSerializer):
 
     def get_recipes(self, obj):
         queryset = Recipe.objects.filter(
-            author=obj.subscribes_to)
+            author=obj.subscribes_to)[:3]
         request = self.context['request']
         serializer = RecipeForSubcribeSerializer(
             queryset,

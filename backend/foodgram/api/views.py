@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 
 from recipies.filters import IngredientSearchFilter, RecipeFilter
 from recipies.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .pagination import LimitPageNumberPagination
 from .permissions import IsAdminAuthorOrReadOnly
 from .serializers import (FavoriteSerializer, IngredientSerializer,
                           RecipeGetSerializer, RecipePostSerializer,
@@ -34,6 +35,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminAuthorOrReadOnly,)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
+    pagination_class = LimitPageNumberPagination
 
     def get_serializer_class(self):
         if self.request.method == 'GET':

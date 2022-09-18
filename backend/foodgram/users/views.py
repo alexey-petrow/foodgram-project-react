@@ -7,10 +7,12 @@ from rest_framework.response import Response
 
 from .models import Subscription, User
 from .serializers import SubscribeSerializer
+from api.pagination import LimitPageNumberPagination
 
 
 class CustomUserViewSet(UserViewSet):
     permission_classes = (IsAuthenticatedOrReadOnly,)
+    pagination_class = LimitPageNumberPagination
 
     @action(
         methods=['get'],
